@@ -1,0 +1,362 @@
+[{
+	"id": "95207dbd12f85579",
+	"type": "inject",
+	"z": "c271dc99.a2a23",
+	"name": "pwr - get  power data",
+	"props": [{
+		"p": "payload"
+	}, {
+		"p": "baudrate",
+		"v": "115200",
+		"vt": "str"
+	}],
+	"repeat": "10",
+	"crontab": "",
+	"once": false,
+	"onceDelay": "5",
+	"topic": "",
+	"payload": "pwr",
+	"payloadType": "str",
+	"x": 500,
+	"y": 2500,
+	"wires": [
+		["2fd6f1b99a7ec42e"]
+	]
+}, {
+	"id": "2fd6f1b99a7ec42e",
+	"type": "function",
+	"z": "c271dc99.a2a23",
+	"name": "add \\n",
+	"func": "msg.payload += \"\\n\";\nreturn msg;",
+	"outputs": 1,
+	"noerr": 0,
+	"initialize": "",
+	"finalize": "",
+	"libs": [],
+	"x": 710,
+	"y": 2500,
+	"wires": [
+		["881c95b7f28b4490"]
+	]
+}, {
+	"id": "f5da5f1e3f0eab21",
+	"type": "split",
+	"z": "c271dc99.a2a23",
+	"name": "Split into rows",
+	"splt": "\\n",
+	"spltType": "str",
+	"arraySplt": 1,
+	"arraySpltType": "len",
+	"stream": false,
+	"addname": "",
+	"x": 1120,
+	"y": 2500,
+	"wires": [
+		["5bfa9b4a03345b6a"]
+	]
+}, {
+	"id": "5bfa9b4a03345b6a",
+	"type": "function",
+	"z": "c271dc99.a2a23",
+	"name": "Row to Array",
+	"func": "let payload = msg.payload\nlet statArray = []\n\n// Create awway of battery stats\nstatArray[0]    = new Array(parseInt(payload.toString().substr(0, 6)), \"BattID\", null, null) // get battery number\nstatArray[1]    = new Array(parseInt(payload.toString().substr(6, 7)) / 1000, \"Volt\", \"V\", \"voltage\", statArray[0][0]) // statArray[0][0] contains battery number\nstatArray[2]    = new Array(parseInt(payload.toString().substr(13, 7)) / 1000, \"Curr\", \"A\", \"current\", statArray[0][0])\nstatArray[3]    = new Array(parseInt(payload.toString().substr(20, 7)) / 1000, \"Tempr\", \"°C\", \"temperature\", statArray[0][0])\nstatArray[4]    = new Array(parseInt(payload.toString().substr(27, 7)) / 1000, \"Tlow\", \"°C\", \"temperature\", statArray[0][0])\nstatArray[5]    = new Array(parseInt(payload.toString().substr(34, 7)) / 1000, \"Thigh\", \"°C\", \"temperature\", statArray[0][0])\nstatArray[6]    = new Array(parseInt(payload.toString().substr(41, 7)) / 1000, \"Vlow\", \"V\", \"voltage\", statArray[0][0])\nstatArray[7]    = new Array(parseInt(payload.toString().substr(48, 7)) / 1000, \"Vhigh\", \"V\", \"voltage\", statArray[0][0])\nstatArray[8]    = new Array(payload.substr(55, 9).trim(), \"BaseSt\", null, null, statArray[0][0])\nstatArray[9]    = new Array(payload.substr(64, 9).trim(), \"VoltSt\", null, null, statArray[0][0])\nstatArray[10]   = new Array(payload.substr(73, 9).trim(), \"CurrSt\", null, null, statArray[0][0])\nstatArray[11]   = new Array(payload.substr(82, 9).trim(), \"TempSt\", null, null, statArray[0][0])\nstatArray[12]   = new Array(parseInt(payload.toString().substr(91, 9)), \"SOC\", \"%\", \"battery\", statArray[0][0])\n\n// Check valid battery stats and return msg\nif (statArray[8][0] !== \"Absent\" && statArray[8][0] != \"\" && statArray[8][0] != \"Base.St\") {\n    msg.payload = statArray\n    return msg;\n}",
+	"outputs": 1,
+	"noerr": 0,
+	"initialize": "",
+	"finalize": "",
+	"libs": [],
+	"x": 470,
+	"y": 2580,
+	"wires": [
+		["de40b551c101035a"]
+	]
+}, {
+	"id": "de40b551c101035a",
+	"type": "split",
+	"z": "c271dc99.a2a23",
+	"name": "Split Array",
+	"splt": "\\n",
+	"spltType": "str",
+	"arraySplt": 1,
+	"arraySpltType": "len",
+	"stream": false,
+	"addname": "",
+	"x": 650,
+	"y": 2580,
+	"wires": [
+		["c6cf490b70025fae"]
+	]
+}, {
+	"id": "9489518d8f2d4a8f",
+	"type": "mqtt out",
+	"z": "c271dc99.a2a23",
+	"name": "MQTT Value",
+	"topic": "",
+	"qos": "",
+	"retain": "",
+	"respTopic": "",
+	"contentType": "",
+	"userProps": "",
+	"correl": "",
+	"expiry": "",
+	"broker": "67654530a9a40507",
+	"x": 1150,
+	"y": 2620,
+	"wires": []
+}, {
+	"id": "3c4c1884e16dae85",
+	"type": "inject",
+	"z": "c271dc99.a2a23",
+	"name": "pwrsys - get system data",
+	"props": [{
+		"p": "payload"
+	}, {
+		"p": "baudrate",
+		"v": "115200",
+		"vt": "str"
+	}],
+	"repeat": "60",
+	"crontab": "",
+	"once": false,
+	"onceDelay": "5",
+	"topic": "",
+	"payload": "pwrsys",
+	"payloadType": "str",
+	"x": 520,
+	"y": 2680,
+	"wires": [
+		["968bc2d48734279e"]
+	]
+}, {
+	"id": "968bc2d48734279e",
+	"type": "function",
+	"z": "c271dc99.a2a23",
+	"name": "add \\n",
+	"func": "msg.payload += \"\\n\";\nreturn msg;",
+	"outputs": 1,
+	"noerr": 0,
+	"initialize": "",
+	"finalize": "",
+	"libs": [],
+	"x": 730,
+	"y": 2680,
+	"wires": [
+		["ad24e0e47d7e5d77"]
+	]
+}, {
+	"id": "50fcbe30d7db4311",
+	"type": "split",
+	"z": "c271dc99.a2a23",
+	"name": "Split into rows",
+	"splt": "\\n",
+	"spltType": "str",
+	"arraySplt": 1,
+	"arraySpltType": "len",
+	"stream": false,
+	"addname": "",
+	"x": 1120,
+	"y": 2680,
+	"wires": [
+		["1fd9c39f4ac2dc1c"]
+	]
+}, {
+	"id": "881c95b7f28b4490",
+	"type": "serial request",
+	"z": "c271dc99.a2a23",
+	"name": "Pylontech Console",
+	"serial": "e6c39153.e8eab8",
+	"x": 890,
+	"y": 2500,
+	"wires": [
+		["f5da5f1e3f0eab21"]
+	],
+	"info": "First, the console must be activated. To do this, switch the terminal program to 1200, 8,N,1.\r\nThen send the following hex string to the battery:\r\nData: 7E 32 30 30 31 34 36 38 32 43 30 30 34 38 35 32 30 46 43 43 33 0D\r\nNow switch to 115200,8,N,1.\r\nData: 0D 0A.\r\nThe pylon > prompt appears, which allows you to enter commands."
+}, {
+	"id": "ad24e0e47d7e5d77",
+	"type": "serial request",
+	"z": "c271dc99.a2a23",
+	"name": "Pylontech Console",
+	"serial": "e6c39153.e8eab8",
+	"x": 910,
+	"y": 2680,
+	"wires": [
+		["50fcbe30d7db4311"]
+	],
+	"info": "First, the console must be activated. To do this, switch the terminal program to 1200, 8,N,1.\r\nThen send the following hex string to the battery:\r\nData: 7E 32 30 30 31 34 36 38 32 43 30 30 34 38 35 32 30 46 43 43 33 0D\r\nNow switch to 115200,8,N,1.\r\nData: 0D 0A.\r\nThe pylon > prompt appears, which allows you to enter commands."
+}, {
+	"id": "c6cf490b70025fae",
+	"type": "function",
+	"z": "c271dc99.a2a23",
+	"name": "Assemble MQTT Value",
+	"func": "let payload = msg.payload;\nlet mqttMsg = {}\n\nif (payload[1] != \"BattID\") {\n\n  mqttMsg.payload = payload[0];\n  mqttMsg.shorttopic = payload[1];\n\n  if (payload[2] != null) {\n   mqttMsg.unit = payload[2]\n  }\n\n  if (payload[3] != null) {\n    mqttMsg.deviceclass = payload[3]\n  }\n\n  mqttMsg.deviceid = payload[4]\n  mqttMsg.topic = `homeassistant/sensor/Pylontech${mqttMsg.deviceid}/${mqttMsg.shorttopic}/value`;\n  return mqttMsg;\n}\n\n",
+	"outputs": 1,
+	"noerr": 0,
+	"initialize": "",
+	"finalize": "",
+	"libs": [],
+	"x": 870,
+	"y": 2580,
+	"wires": [
+		["9489518d8f2d4a8f", "4fe267dc5f3daa44"]
+	]
+}, {
+	"id": "4fe267dc5f3daa44",
+	"type": "function",
+	"z": "c271dc99.a2a23",
+	"name": "Assemble MQTT Config",
+	"func": "let configMsg = {}\n\nconfigMsg.topic = `homeassistant/sensor/Pylontech${msg.deviceid}/${msg.shorttopic}/config`;\nconfigMsg.payload = {\n  \n  \"unit_of_measurement\": msg.unit,\n  \"device_class\": msg.deviceclass,\n  \"state_topic\": `homeassistant/sensor/Pylontech${msg.deviceid}/${msg.shorttopic}/value`,\n  \"name\": `Pylontech${msg.deviceid}_${msg.shorttopic}`,\n  \"unique_id\": msg.shorttopic + msg.deviceid,\n  \"device\": {\n    \"identifiers\": [\n      \"Pylontech\"\n    ],\n    \"name\": msg.shorttopic,\n    \"model\": \"US Series\",\n    \"manufacturer\": \"Pylontech\"\n  }  \n}\n\nreturn configMsg;",
+	"outputs": 1,
+	"noerr": 0,
+	"initialize": "",
+	"finalize": "",
+	"libs": [],
+	"x": 1130,
+	"y": 2560,
+	"wires": [
+		["7b55473cb3e8c6b8"]
+	]
+}, {
+	"id": "1fd9c39f4ac2dc1c",
+	"type": "function",
+	"z": "c271dc99.a2a23",
+	"name": "Build from rows",
+	"func": "function intcap(str) {\n    str = str.split(\" \");\n\n    for (var i = 0, x = str.length; i < x; i++) {\n        str[i] = str[i][0].toUpperCase() + str[i].substr(1);\n    }\n\n    return str.join(\" \");\n}\n\nlet payload = {};\n\nif (msg.payload.includes(\"System is\")) {\n    \n    payload.mqttTopic = intcap(\"system status\").replaceAll(\" \", \"\")\n    payload.value = msg.payload.toString().trim()\n    payload.unit = null\n    payload.deviceClass = null\n    payload.topic = \"Status\"\n    msg.payload = payload\n    \n    return msg;\n\n} else if (msg.payload.includes(\":\")) {\n\n    let colonIndex = msg.payload.indexOf(\":\")\n    let payloadStr = msg.payload.toString().trim()\n    let payloadValue = payloadStr.substr(colonIndex, payloadStr.length - colonIndex).trim()\n    let spaceIndex = payloadValue.indexOf(\" \")\n    \n    payload.mqttTopic = intcap(payloadStr.substr(0, colonIndex - 1).trim()).replaceAll(\" \", \"\")\n\n    // System data only\n    if (payload.mqttTopic.substr(0, 6) === \"System\"\n        || payload.mqttTopic.substr(-3) === \"Num\"\n        ) {\n\n        if (spaceIndex > 0) {\n            \n            let payloadUnit = payloadValue.substr(spaceIndex, payloadValue.length - spaceIndex).trim()\n            payload.value = Math.abs(parseInt(payloadValue.substr(0, spaceIndex).trim()))\n            \n            if (payload.mqttTopic.slice(-3) !== \"SOC\" \n                && payload.mqttTopic.slice(-3) !== \"SOH\"\n                ) {\n                payload.value = payload.value / 1000\n            }\n            \n            switch (payloadUnit) {\n                case \"mV\":\n                    payload.unit = \"V\"\n                    payload.deviceClass = \"voltage\"\n                    break\n                case \"mA\":\n                    payload.unit = \"A\"\n                    payload.deviceClass = \"current\"\n                    break\n                case \"%\":\n                    payload.unit = payloadUnit\n                    payload.deviceClass = \"battery\"\n                    break     \n            }\n\n        } else {\n            payload.value = Math.abs(parseInt(payloadValue.trim()))\n            payload.unit = undefined;\n            payload.deviceClass = undefined;\n        }\n\n        payload.mqttTopic = payload.mqttTopic.replace(\"FCC\", \"MaxAh\")\n        payload.mqttTopic = payload.mqttTopic.replace(\"RC\", \"CurrentAh\")\n\n        msg.payload = payload\n        return msg;\n    }\n\n}\n\n",
+	"outputs": 1,
+	"noerr": 0,
+	"initialize": "",
+	"finalize": "",
+	"libs": [],
+	"x": 480,
+	"y": 2760,
+	"wires": [
+		["b4cd6432ddd9f2bf"]
+	]
+}, {
+	"id": "b4cd6432ddd9f2bf",
+	"type": "function",
+	"z": "c271dc99.a2a23",
+	"name": "Assemble MQTT Value",
+	"func": "let payload = msg.payload;\nlet mqttMsg = {}\n\nmqttMsg.mqttTopic = payload.mqttTopic\nmqttMsg.payload = payload.value;\n\nif (payload.unit != null) {\n  mqttMsg.unit = payload.unit\n}\n\nif (payload.deviceClass != null) {\n  mqttMsg.deviceClass = payload.deviceClass\n}\n\nmqttMsg.deviceid = 0\nmqttMsg.topic = `homeassistant/sensor/PylontechSystem/${mqttMsg.mqttTopic}/value`;\nreturn mqttMsg;\n",
+	"outputs": 1,
+	"noerr": 0,
+	"initialize": "",
+	"finalize": "",
+	"libs": [],
+	"x": 790,
+	"y": 2760,
+	"wires": [
+		["ff4d40f69fe62340", "9489518d8f2d4a8f"]
+	]
+}, {
+	"id": "ff4d40f69fe62340",
+	"type": "function",
+	"z": "c271dc99.a2a23",
+	"name": "Assemble MQTT Config",
+	"func": "let configMsg = {}\n\nconfigMsg.topic = `homeassistant/sensor/PylontechSystem/${msg.mqttTopic}/config`;\nconfigMsg.payload = {\n  \n  \"unit_of_measurement\": msg.unit,\n  \"device_class\": msg.deviceClass,\n  \"state_topic\": `homeassistant/sensor/PylontechSystem/${msg.mqttTopic}/value`,\n  \"name\": `Pylontech_${msg.mqttTopic}`,\n  \"unique_id\": msg.mqttTopic + msg.deviceid,\n  \"device\": {\n    \"identifiers\": [\n      \"Pylontech\"\n    ],\n    \"name\": msg.mqttTopic,\n    \"model\": \"US Series\",\n    \"manufacturer\": \"Pylontech\"\n  }  \n}\n\nreturn configMsg;",
+	"outputs": 1,
+	"noerr": 0,
+	"initialize": "",
+	"finalize": "",
+	"libs": [],
+	"x": 1130,
+	"y": 2740,
+	"wires": [
+		["4ba1a9f622e14fd6"]
+	]
+}, {
+	"id": "f791085c249489bd",
+	"type": "mqtt out",
+	"z": "c271dc99.a2a23",
+	"name": "MQTT Config Retained",
+	"topic": "",
+	"qos": "",
+	"retain": "true",
+	"respTopic": "",
+	"contentType": "",
+	"userProps": "",
+	"correl": "",
+	"expiry": "",
+	"broker": "67654530a9a40507",
+	"x": 1650,
+	"y": 2640,
+	"wires": []
+}, {
+	"id": "7b55473cb3e8c6b8",
+	"type": "rbe",
+	"z": "c271dc99.a2a23",
+	"name": "Block Unless Changed",
+	"func": "rbe",
+	"gap": "",
+	"start": "",
+	"inout": "out",
+	"septopics": true,
+	"property": "payload",
+	"topi": "topic",
+	"x": 1380,
+	"y": 2600,
+	"wires": [
+		["f791085c249489bd"]
+	]
+}, {
+	"id": "4ba1a9f622e14fd6",
+	"type": "rbe",
+	"z": "c271dc99.a2a23",
+	"name": "Block Unless Changed",
+	"func": "rbe",
+	"gap": "",
+	"start": "",
+	"inout": "out",
+	"septopics": true,
+	"property": "payload",
+	"topi": "topic",
+	"x": 1380,
+	"y": 2680,
+	"wires": [
+		["f791085c249489bd"]
+	]
+}, {
+	"id": "67654530a9a40507",
+	"type": "mqtt-broker",
+	"name": "Mosquitto MQTT",
+	"broker": "homeassistant.local",
+	"port": "1883",
+	"clientid": "",
+	"autoConnect": true,
+	"usetls": false,
+	"protocolVersion": "4",
+	"keepalive": "60",
+	"cleansession": true,
+	"birthTopic": "",
+	"birthQos": "0",
+	"birthPayload": "",
+	"birthMsg": {},
+	"closeTopic": "",
+	"closeQos": "0",
+	"closePayload": "",
+	"closeMsg": {},
+	"willTopic": "",
+	"willQos": "0",
+	"willPayload": "",
+	"willMsg": {},
+	"userProps": "",
+	"sessionExpiry": "",
+	"credentials": {}
+}, {
+	"id": "e6c39153.e8eab8",
+	"type": "serial-port",
+	"serialport": "/dev/serial/by-path/pci-0000:00:15.0-usb-0:2.3:1.0-port0",
+	"serialbaud": "115200",
+	"databits": "8",
+	"parity": "none",
+	"stopbits": "1",
+	"waitfor": "",
+	"dtr": "none",
+	"rts": "none",
+	"cts": "none",
+	"dsr": "none",
+	"newline": "1000",
+	"bin": "false",
+	"out": "interbyte",
+	"addchar": "",
+	"responsetimeout": "10000"
+}]
